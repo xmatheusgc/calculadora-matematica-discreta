@@ -302,31 +302,53 @@ namespace projeto_md
     {
         public static EuclidResult Compute(int a, int b)
         {
-            var steps = new List<string>();
+            var divisionLines = new List<string>();
+            var tableLines = new List<string>();
             int old_r = a, r = b;
             int old_s = 1, s = 0;
             int old_t = 0, t = 1;
-            steps.Add($"Inicial: old_r={old_r}, r={r}, old_s={old_s}, s={s}, old_t={old_t}, t={t}");
+
+            int iter = 0;
+            // Collect divisions and iteration table (capture state before update)
             while (r != 0)
             {
                 int q = old_r / r;
-                int temp;
-                temp = old_r - q * r;
-                steps.Add($"{old_r} = {r}×{q} + {temp}");
+                int remainder = old_r - q * r;
+                divisionLines.Add($"{old_r} = {r}×{q} + {remainder}");
+
+                // record table line: i | q | old_r | r | old_s | s | old_t | t
+                tableLines.Add(string.Format("{0,2} | {1,3} | {2,6} | {3,6} | {4,6} | {5,6} | {6,6} | {7,6}",
+                    iter, q, old_r, r, old_s, s, old_t, t));
+
                 int new_r = old_r - q * r;
-                old_r = r;
-                r = new_r;
-
                 int new_s = old_s - q * s;
-                old_s = s;
-                s = new_s;
-
                 int new_t = old_t - q * t;
-                old_t = t;
-                t = new_t;
 
-                steps.Add($"s={old_s}, t={old_t}, r={old_r}");
+                old_r = r; r = new_r;
+                old_s = s; s = new_s;
+                old_t = t; t = new_t;
+
+                iter++;
             }
+
+            // Build formatted steps following project style (PT-BR)
+            var steps = new List<string>();
+
+            steps.Add($"Estado inicial: old_r = {a}, r = {b}, old_s = 1, s = 0, old_t = 0, t = 1");
+            steps.Add("");
+            steps.Add("Algoritmo de Euclides:");
+            for (int i = 0; i < divisionLines.Count; i++)
+            {
+                steps.Add((i + 1).ToString().PadLeft(2) + ". " + divisionLines[i]);
+            }
+            steps.Add("");
+            steps.Add("Tabela de iterações:\n i | q | old_r | r | old_s | s | old_t | t");
+            steps.AddRange(tableLines);
+            steps.Add("");
+            steps.Add($"mdc({a},{b}) = {old_r}");
+            steps.Add("");
+            steps.Add("Combinação linear:");
+            steps.Add($"{old_r} = ({old_s}) × {a} + ({old_t}) × {b}");
 
             return new EuclidResult
             {
